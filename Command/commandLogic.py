@@ -11,6 +11,7 @@ import netifaces as ni
 import time
 import numpy as np
 from thermCam import thermCamSetup, thermCamReading
+from socketUtils import socketSetup
 
 def socketSetup():
 # Start a server to get information from the Pi processing the NoIR feed
@@ -36,14 +37,30 @@ def socketSetup():
 
 def main():
     (conn, addr) = socketSetup()
+    motorGroup = thermCamSetup()
     # try/while True:
     try:
         while True:
             data = conn.recv(1024).decode()
             if not data:
                 break
+            numberOfPeople = int(data)
 
             conn.send("ack".encode())
+            thermCamOutput = thermCamReading(motorGroup)
+            # Photoelectric Eye
+            # Waterlevel sensor
+
+            eyeOut = #function
+            levelSensorOut = #function
+
+            if numberOfPeople == 1 or numberOfPeople == 2:
+                if thermCamOutput and eyeOut or
+                   thermCamOutput and levelSensorOut or
+                   eyeOut and levelSensorOut:
+                       # do something positive
+            elif thermCamOutput and eyeOut and levelSensorOut:
+                # do positive thening
     except:
         conn.close()
 
