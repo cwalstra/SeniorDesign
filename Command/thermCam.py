@@ -3,19 +3,13 @@ import busio
 import board
 import adafruit_amg88xx
 import RPi.GPIO as GPIO
- 
-i2c = busio.I2C(board.SCL, board.SDA)
-amg = adafruit_amg88xx.AMG88XX(i2c)
 
-LED = 21
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(LED, GPIO.OUT)
-GPIO.output(LED, False)
+def thermCamSetup():
+    i2c = busio.I2C(board.SCL, board.SDA)
+    amg = adafruit_amg88xx.AMG88XX(i2c)
+    return amg
 
-while True:
-    print("\n")
-    print("Splitter")
+def thermCamReading(amg):
     highTemps = 0
     rowCounter = 0
     highTempList = []
@@ -23,7 +17,6 @@ while True:
         # Pad to 1 decimal place
         rowCounter += 1
         columnCounter = 0
-        print(['{0:.1f}'.format(temp) for temp in row])
         for temp in row:
             columnCounter += 1
             if temp > 26.0:
@@ -31,11 +24,9 @@ while True:
                 highTempList.append((rowCounter, columnCounter))
 
     if highTemps > 4:
-        GPIO.output(LED, True)
+        return True
     else:
-        GPIO.output(LED, False)
-
-    print(highTempList)
+        return False
 
 '''
 Potential algorithms

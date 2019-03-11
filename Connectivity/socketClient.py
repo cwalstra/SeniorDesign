@@ -1,21 +1,28 @@
 import socket
 import netifaces as ni
+import cv2
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+from sys import getsizeof
+import pickle
+import struct
 
-ni.ifaddresses('eth0')
-ip = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
-host = str(ip)
-port = 5001
+host = "127.0.0.1"
+port = 5003
 
 mySocket = socket.socket()
 mySocket.connect((host,port))
 
-message = input(" ? ")
+camera = PiCamera()
+camera.resolution = (640, 480)
+camera.framerate = 32
+rawCapture = PiRGBArray(camera, size=(640, 480))
 
-while message != 'q':\
-    mySocket.send(message.encode())
-    data = mySocket.recv(1024).decode()
-                                            
-    print ('Received from server: ' + data)
-    message = input(" ? ")
+try:
+    for frame in camera.capture_continuous("output.jpg", format="bgr", use_video_port=True):
+        newFrame = read("output.jpg", "rb")
+        data = pickle.dumps(newFrame)
+        clientsocket.sendall(struck.pack("L", len(data)) + data)
+except:
+    mySocket.close()
 
-mySocket.close()
