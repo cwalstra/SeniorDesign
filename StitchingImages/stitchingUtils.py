@@ -11,10 +11,9 @@ import numpy as np
 
 class Stitcher:
     def __init__(self):
-        self.isv3 = imutils.is_cv3()
         self.cachedH = None
 
-    def stitch(self, images, ratio = 0.75, reprojThesh = 4.0, showMatches = False):
+    def stitch(self, images, ratio = 0.75, reprojThresh = 4.0, showMatches = False):
         (imageB, imageA) = images
         
         if self.cachedH is None:
@@ -34,3 +33,32 @@ class Stitcher:
         result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
 
         return result
+
+    def detectAndDescribe(self, image):
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        descriptor = cv2.xfeatures2d.SIFT_create()
+
+        (kps, features) = descriptor.detectAndCompute(image, None)
+
+        kps = np.float64([kp.pt for kp in kps])
+
+        return (kps, features)
+
+    def matchKeypoints(self, kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh):
+        matcher = cv2.DescriptorMatcher_create("BruteForce")
+        rawMatches = matcher.knnMatch(featuresA, featuresB, 2)
+        matches = []
+
+        for m in rawMatches:
+            if len(m) == 2 and m[0].distance < m[1].distance + ratio:
+                matches.append((m[0].trainIdx, m[0].queryIdx))
+        
+        if len(matches) > 4:
+            ptsA = np.float32([kpsA[i] for (_, i) in matches])
+            ptsB = np.float32([kpsB[i] for (i, _) in matches])
+
+            (H, status) = cv2.findHomography(ptsA, ptsB, cv2.RANSAC, reprojThresh)
+            return (matches, H, status)
+
+        return None
