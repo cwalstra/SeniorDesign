@@ -13,59 +13,47 @@ import numpy as np
 from thermCam import thermCamSetup, thermCamReading
 from socketUtils import socketSetup
 
-def socketSetup():
-# Start a server to get information from the Pi processing the NoIR feed
-    ni.ifaddresses('eth0')
-    ip = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
-    server = str(ip)
-    port = 5001
-
-    try:
-        mySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    except socket.error as err_msg:
-        print("Socket failed on startup")
-        sys.exit()
-
-    mySocket.bind((server,port))
-
-    mySocket.listen(1)
-    connection, address = mySocket.accept()
-
-    print("Connection from: " + str(addr))
-
-    return (connection, address)
-
 def main():
     (conn, addr) = socketSetup()
     motorGroup = thermCamSetup()
-    # try/while True:
+    peopleHistory = [0, 0, 0, 0, 0, 0, 0, 0]
+    thermHistory = [0, 0, 0, 0]
+    eyeHistory = [0, 0, 0, 0]
+    levelHistory = [0, 0, 0, 0]
     try:
         while True:
             data = conn.recv(1024).decode()
             if not data:
                 break
             numberOfPeople = int(data)
+            peopleHistory.insert(0, numberOfPeople)
+            peopleHistory.pop()
 
             conn.send("ack".encode())
             thermCamOutput = thermCamReading(motorGroup)
-            # Photoelectric Eye
-            # Waterlevel sensor
+            thermHistory.insert(0, thermCamOutput)
+            thermHistory.pop()
 
             eyeOut = #function
-            levelSensorOut = #function
+            eyeHistory.insert(0, eyeOut)
+            eyeHistory.pop()
 
-            if numberOfPeople == 1 or numberOfPeople == 2:
-                if thermCamOutput and eyeOut or
-                   thermCamOutput and levelSensorOut or
-                   eyeOut and levelSensorOut:
+            levelSensorOut = #function
+            levelHistory.insert(0, levelSensorOut)
+            levelHistory.pop()
+
+            if 1 in peopleHistory or 2 in people History:
+                if True in thermHistory and True in eyeHistory or
+                   True in thermHistory and True in levelHistory or
+                   True in eyeHistory and True in levelHistory:
                        # do something positive
-            elif thermCamOutput and eyeOut and levelSensorOut:
+            elif True in thermHistory and True in eyeHistory and True in levelHistory:
                 # do positive thening
     except:
         conn.close()
 
     conn.close()
-
+'''
 # Get information in from the thermal camera, the water level sensor, and the photoelectric eye
 
 # Store values in list to maintain memory
@@ -75,6 +63,6 @@ def main():
 # Does the thermal camera see someone recently (last 4 samples)?
 # Has the photoelectric eye been tripped in the past 4 samples?
 # Has the waterlevel sensor detected in a disturbance in the past 4 samples?
-
+'''
 if __name__ == "__main__":
     main()
