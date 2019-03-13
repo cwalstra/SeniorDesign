@@ -12,14 +12,20 @@ import time
 import numpy as np
 from thermCam import thermCamSetup, thermCamReading
 from socketUtils import socketSetup
+from eyeUtils import eyeSetup, eyeOutput
+from levelUtils import levelSetup, levelOutput
 
 def main():
     (conn, addr) = socketSetup()
     motorGroup = thermCamSetup()
+    eyeSetup()
+    read = levelSetup()
+
     peopleHistory = [0, 0, 0, 0, 0, 0, 0, 0]
     thermHistory = [0, 0, 0, 0]
     eyeHistory = [0, 0, 0, 0]
     levelHistory = [0, 0, 0, 0]
+
     try:
         while True:
             data = conn.recv(1024).decode()
@@ -34,21 +40,24 @@ def main():
             thermHistory.insert(0, thermCamOutput)
             thermHistory.pop()
 
-            eyeOut = #function
+            eyeOut = eyeOutput()
             eyeHistory.insert(0, eyeOut)
             eyeHistory.pop()
 
-            levelSensorOut = #function
+            levelSensorOut, read = levelOutput(read)
             levelHistory.insert(0, levelSensorOut)
             levelHistory.pop()
 
-            if 1 in peopleHistory or 2 in people History:
-                if True in thermHistory and True in eyeHistory or
-                   True in thermHistory and True in levelHistory or
+            if 1 in peopleHistory or 2 in peopleHistory:
+                if True in thermHistory and True in eyeHistory or \
+                   True in thermHistory and True in levelHistory or \
                    True in eyeHistory and True in levelHistory:
                        # do something positive
+                       continue
             elif True in thermHistory and True in eyeHistory and True in levelHistory:
-                # do positive thening
+                # do positive thing
+                continue
+
     except:
         conn.close()
 
