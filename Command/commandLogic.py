@@ -31,6 +31,8 @@ def main():
             data = conn.recv(1024).decode()
             if not data:
                 break
+            else:
+                conn.send(data.encode())
             numberOfPeople = int(data)
             peopleHistory.insert(0, numberOfPeople)
             peopleHistory.pop()

@@ -10,6 +10,8 @@ from imutils import paths
 import RPi.GPIO as GPIO
 from multiprocessing import Pool
 from timeit import default_timer as Timer
+import netifaces as ni
+import socket
 
 #TODO: Implement multiprocessing, probably via pool to limit the number of processes, may need to add locks to properly manage resourcews
 
@@ -26,15 +28,21 @@ def lookForPeople(frame):
     rects = np.array([[x, y, x+w, y+h] for (x, y, w, h) in rects])
     picks = non_max_suppression(rects, probs=None, overlapThresh=0.65)
 
-#    if len(picks) > 0:
-#        GPIO.output(LED, True)
-#    else:
-#        GPIO.output(LED, False)
+    people = str(picks)
+
+    goodConnection = True
+    mySocket.send(people.encode())
+    data = mySocket.recv(1024).decode()
+    if data != people:
+        goodConnection = False
+        
 
     for (xA, yA, xB, yB) in picks:
         cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
 
     cv2.imshow("Frame", image)
+
+    return goodConnection
 
 
 # LED Setup
@@ -43,6 +51,12 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(LED, GPIO.OUT)
 GPIO.output(LED, False)
+
+# Socket Setup
+host = "127.0.0.1"
+port = 5001
+mySocket = socket.socket()
+mySocket.connect((host, port))
 
 # Set up OpenCV for person detection
 hog = cv2.HOGDescriptor()
@@ -55,10 +69,12 @@ camera = PiCamera()
 camera.resolution = (640,480)
 camera.framerate = 32
 rawCapture = PiRGBArray(camera, size=(640, 480))
+
 try:
     for newFrame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         start = Timer()
-        lookForPeople(newFrame) 
+        if not lookForPeople(newFrame):
+            break
 
         rawCapture.truncate(0)
         key = cv2.waitKey(1) & 0xFF
@@ -70,3 +86,5 @@ try:
             break
 except KeyboardInterrupt:
     print(myString)
+
+mySocket.close()
