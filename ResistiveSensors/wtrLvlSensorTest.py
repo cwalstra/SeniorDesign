@@ -5,10 +5,12 @@ import time
 import statistics
 import RPi.GPIO as io
 
+LED = 20
+
 io.setwarnings(False)
 io.setmode(io.BCM)
-io.setup(21, io.OUT)
-io.output(21, 0)
+io.setup(LED, io.OUT)
+io.output(LED, 0)
 
 def charge():
     io.setup(25, io.IN)
@@ -65,7 +67,7 @@ while(True):
     cur_read = analog_read()
     time.sleep(sleep_time)
     print(cur_read)
-    io.output(21, 0)
+    io.output(LED, 0)
     if (cur_read / statistics.mean(read) > skip_factor) or \
             (statistics.mean(read) / cur_read > skip_factor):
         print("    Skip")
@@ -77,5 +79,5 @@ while(True):
     std_dev = statistics.stdev(read)
     print("    " + str(std_dev))
     if std_dev > stdev_limit:
-        io.output(21, 1)
+        io.output(LED, 1)
 
