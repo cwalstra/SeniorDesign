@@ -1,3 +1,7 @@
+import netifaces as ni
+import socket
+import sys
+
 def socketSetup():
     ni.ifaddresses('eth0')
     ip = ni.ifaddresses('eth0')[ni.AF_INET][0]['addr']
@@ -11,7 +15,7 @@ def socketSetup():
         sys.exit
 
     try:
-        mySocket.band((server, port))
+        mySocket.bind((server, port))
 
         mySocket.listen(1)
         connection, address = mySocket.accept()
