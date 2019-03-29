@@ -5,11 +5,15 @@ import time
 import statistics
 import RPi.GPIO as io
 
+LEDblue = 20
+
 def setup():
    io.setwarnings(False)
    io.setmode(io.BCM)
    io.setup(21, io.OUT)
    io.output(21, 0)
+   io.setup(LEDblue, io.OUT)
+   io.output(LEDblue, 0)
 
 def charge():
     io.setup(25, io.IN)
@@ -61,11 +65,12 @@ def levelSetup():
     read = []
     for i in range(read_range):
         read.append(initial)
-    return read
+    return read, stdev_limit
 
 
-def levelOutput(read):
+def levelOutput(read, stdev_limit):
     splash = False
+    io.output(LEDblue, 0)
     init_range = 100
     skip_factor = 1.15
     sleep_time = 0.2
@@ -78,8 +83,8 @@ def levelOutput(read):
         read.insert(0, cur_read)
 
         std_dev = statistics.stdev(read)
-        print("    " + str(std_dev))
         if std_dev > stdev_limit:
-           splash = False
+           splash = True
+           io.output(LEDblue, 1)
 
-    return splash, read
+    return splash, read, stdev_limit
