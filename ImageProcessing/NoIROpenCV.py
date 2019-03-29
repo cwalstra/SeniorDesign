@@ -12,8 +12,7 @@ from multiprocessing import Pool
 from timeit import default_timer as Timer
 import netifaces as ni
 import socket
-
-#TODO: Implement multiprocessing, probably via pool to limit the number of processes, may need to add locks to properly manage resourcews
+import traceback
 
 def lookForPeople(frame):
     image = frame.array
@@ -28,14 +27,16 @@ def lookForPeople(frame):
     rects = np.array([[x, y, x+w, y+h] for (x, y, w, h) in rects])
     picks = non_max_suppression(rects, probs=None, overlapThresh=0.65)
 
-    people = str(picks)
+    people = str(len(picks))
 
     goodConnection = True
     mySocket.send(people.encode())
+    print("Data sent")
     data = mySocket.recv(1024).decode()
-    if data != people:
+    print("Data: " + data)
+    if data != "ack":
         goodConnection = False
-        
+        print("Connection Dropped")
 
     for (xA, yA, xB, yB) in picks:
         cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
@@ -44,17 +45,9 @@ def lookForPeople(frame):
 
     return goodConnection
 
-
-# LED Setup
-LED = 21
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(LED, GPIO.OUT)
-GPIO.output(LED, False)
-
 # Socket Setup
-host = "127.0.0.1"
-port = 5001
+host = "153.106.113.63"
+port = 5002
 mySocket = socket.socket()
 mySocket.connect((host, port))
 
@@ -84,7 +77,10 @@ try:
         myString = str(newFrame)
         if key == ord("q"):
             break
+
 except KeyboardInterrupt:
     print(myString)
+except Exception:
+    traceback.print_exc()
 
 mySocket.close()
