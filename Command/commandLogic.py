@@ -16,9 +16,24 @@ from socketUtils import socketSetup
 from eyeUtils import eyeSetup, eyeOutput
 from levelUtils import levelSetup, levelOutput
 from timeit import default_timer as Timer
+import RPi.GPIO as GPIO
+
+running = True 
+
+def button_callback():
+    global running
+    running = not running
+
+def button_setup():
+    BUTTON = 16
+    BOUNCE_TIME = 300
+    GPIO.setup(BUTTON, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.add_event_detect(SWITCH_1, GPIO.RISING, callback = my_callback, bouncetime = BOUNCE_TIME)
+       
 
 def main():
-    running = True
+    global running
+    button_setup()
     debug = True
     if debug:
         print("Thermal Camera setup...")
@@ -42,9 +57,6 @@ def main():
 
     try:
         while True:
-            if # button press == True
-               running = not running
-
             start = Timer()
             data = conn.recv(1024).decode()
             readEnd = Timer()
