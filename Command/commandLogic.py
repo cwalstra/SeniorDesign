@@ -18,6 +18,7 @@ from levelUtils import levelSetup, levelOutput
 from timeit import default_timer as Timer
 
 def main():
+    running = True
     debug = True
     if debug:
         print("Thermal Camera setup...")
@@ -41,6 +42,9 @@ def main():
 
     try:
         while True:
+            if # button press == True
+               running = not running
+
             start = Timer()
             data = conn.recv(1024).decode()
             readEnd = Timer()
@@ -76,14 +80,13 @@ def main():
             if debug:
                 print(levelHistory)
 
-            if 1 in peopleHistory or 2 in peopleHistory:
+            if 1 in peopleHistory or 2 in peopleHistory and running:
                 if True in thermHistory and True in eyeHistory or \
                    True in thermHistory and True in levelHistory or \
                    True in eyeHistory and True in levelHistory:
                        # do something positive
                        print("Saving needed")
-                       continue
-            elif True in thermHistory and True in eyeHistory and True in levelHistory:
+            elif True in thermHistory and True in eyeHistory and True in levelHistory and running:
                 # do positive thing
                 print("Saving needed")
             else:
