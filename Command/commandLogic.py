@@ -17,9 +17,27 @@ from eyeUtils import eyeSetup, eyeOutput
 from levelUtils import levelSetup, levelOutput
 from timeit import default_timer as Timer
 from multiprocessing import Process, Queue
+import RPi.GPIO as GPIO
+
+
+running = True 
+
+def button_callback():
+    global running
+    running = not running
+
+def button_setup():
+    BUTTON = 16
+    BOUNCE_TIME = 300
+    GPIO.setup(BUTTON, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.add_event_detect(SWITCH_1, GPIO.RISING, callback = my_callback, bouncetime = BOUNCE_TIME)
+       
 
 def main():
+    global running
+    button_setup()
     q = Queue()
+
     debug = True
     if debug:
         print("Thermal Camera setup...")
@@ -49,6 +67,7 @@ def main():
             start = Timer()
             data = conn.recv(1024).decode()
             readEnd = Timer()
+            print("Running: " + running)
             if not data:
                 print("Not Data")
                 break
@@ -79,14 +98,13 @@ def main():
             if debug:
                 print(levelHistory)
 
-            if 1 in peopleHistory or 2 in peopleHistory:
+            if 1 in peopleHistory or 2 in peopleHistory and running:
                 if True in thermHistory and True in eyeHistory or \
                    True in thermHistory and True in levelHistory or \
                    True in eyeHistory and True in levelHistory:
                        # do something positive
                        print("Saving needed")
-                       continue
-            elif True in thermHistory and True in eyeHistory and True in levelHistory:
+            elif True in thermHistory and True in eyeHistory and True in levelHistory and running:
                 # do positive thing
                 print("Saving needed")
             else:
