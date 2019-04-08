@@ -16,8 +16,10 @@ from socketUtils import socketSetup
 from eyeUtils import eyeSetup, eyeOutput
 from levelUtils import levelSetup, levelOutput
 from timeit import default_timer as Timer
+from multiprocessing import Process, Queue
 
 def main():
+    q = Queue()
     debug = True
     if debug:
         print("Thermal Camera setup...")
@@ -35,6 +37,9 @@ def main():
     thermHistory = [0, 0, 0, 0]
     eyeHistory = [0, 0, 0, 0]
     levelHistory = [0, 0, 0, 0]
+
+    waterLevel = Process(target=levelOutput, args=(read, stdev, q,))
+    waterLevel.start()
 
     if debug:
         print("Starting Main Loop")
@@ -70,9 +75,7 @@ def main():
             if debug:
                 print(eyeHistory)
 
-            levelSensorOut, read, stdev = levelOutput(read, stdev)
-            levelHistory.insert(0, levelSensorOut)
-            levelHistory.pop()
+            levelHistory = q.get()
             if debug:
                 print(levelHistory)
 
@@ -90,11 +93,12 @@ def main():
                 # do negative thing
                 print("    No saving needed")
 
-            end = Timer()
-            readTime = readEnd - start
-            elapsedTime = end - start
-            print('Runtime: ' + str(elapsedTime))
-            print('Readtime: ' + str(readTime))
+            if debug and False:
+                end = Timer()
+                readTime = readEnd - start
+                elapsedTime = end - start
+                print('Runtime: ' + str(elapsedTime))
+                print('Readtime: ' + str(readTime))
     except Exception:
         traceback.print_exc()
 

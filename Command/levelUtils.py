@@ -4,6 +4,7 @@
 import time
 import statistics
 import RPi.GPIO as io
+from timeit import default_timer as Timer
 
 LEDblue = 20
 
@@ -41,6 +42,7 @@ def analog_read():
     return charge_time()
 
 def levelSetup():
+    changeFactor = 30
     setup()
     charge()
     init_range = 100
@@ -55,12 +57,13 @@ def levelSetup():
     init_mean = statistics.mean(init_vals)
     good_init_vals = []
     for i in range(len(init_vals)):
-        if (init_vals[i] / init_mean < skip_factor**2) and \
-            (init_mean / init_vals[i] < skip_factor**2):
-            good_init_vals.append(init_vals[i])
+        if init_vals[i] != 0.0:
+            if (init_vals[i] / init_mean < skip_factor**2) and \
+                    (init_mean / init_vals[i] < skip_factor**2):
+                good_init_vals.append(init_vals[i])
     initial = statistics.mean(good_init_vals)
 
-    stdev_limit = initial / 20
+    stdev_limit = initial / changeFactor
     read_range = 10
     read = []
     for i in range(read_range):
@@ -68,23 +71,33 @@ def levelSetup():
     return read, stdev_limit
 
 
-def levelOutput(read, stdev_limit):
-    splash = False
-    io.output(LEDblue, 0)
-    init_range = 100
-    skip_factor = 1.15
-    sleep_time = 0.2
-    cur_read = analog_read()
-    time.sleep(sleep_time)
-    io.output(21, 0)
-    if (cur_read / statistics.mean(read) < skip_factor) and \
-            (statistics.mean(read) / cur_read < skip_factor):
-        read.pop()
-        read.insert(0, cur_read)
+def levelOutput(read, stdev_limit, q):
+    levelHistory = [0, 0, 0, 0]
+    while True:
+        start = Timer()
+        splash = False
+        io.output(LEDblue, 0)
+        init_range = 100
+        skip_factor = 1.15
+        sleep_time = 0.2
+        cur_read = analog_read()
+        time.sleep(sleep_time)
+        io.output(21, 0)
+        if cur_read != 0.0:
+            if (cur_read / statistics.mean(read) < skip_factor) and \
+                    (statistics.mean(read) / cur_read < skip_factor):
+                read.pop()
+                read.insert(0, cur_read)
 
-        std_dev = statistics.stdev(read)
-        if std_dev > stdev_limit:
-           splash = True
-           io.output(LEDblue, 1)
+                std_dev = statistics.stdev(read)
+                if std_dev > stdev_limit:
+                    levelHistory.insert(0, True)
+                    levelHistory.pop()
+                    io.output(LEDblue, 1)
+                else:
+                    levelHistory.insert(0, False)
+                    levelHistory.pop()
 
-    return splash, read, stdev_limit
+        q.put(levelHistory)
+        end = Timer()
+        print("Water calc time: " + str(end - start))
