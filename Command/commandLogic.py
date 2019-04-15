@@ -37,6 +37,7 @@ def main():
     global running
     button_setup()
     q = Queue()
+    q2 = Queue()
 
     debug = True
     if debug:
@@ -58,6 +59,9 @@ def main():
 
     waterLevel = Process(target=levelOutput, args=(read, stdev, q,))
     waterLevel.start()
+
+    eye = Process(target=eyeOutput, args=(q2))
+    eye.start()
 
     if debug:
         print("Starting Main Loop")
@@ -88,9 +92,7 @@ def main():
             if debug:
                 print(thermHistory)
 
-            eyeOut = eyeOutput()
-            eyeHistory.insert(0, eyeOut)
-            eyeHistory.pop()
+            eyeHistory = q2.get()
             if debug:
                 print(eyeHistory)
 

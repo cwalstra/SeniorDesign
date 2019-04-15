@@ -16,10 +16,15 @@ def eyeSetup():
     io.setup(LEDgreen, io.OUT)
     io.output(LEDgreen, 0)
 
-def eyeOutput():
-    io.output(LEDgreen, 0)
-    if io.input(23) != 1:
-        io.output(LEDgreen, 1)
-        return True
-    else:
-        return False
+def eyeOutput(q):
+    eyeHistory = [0, 0, 0, 0]
+    while True:
+        io.output(LEDgreen, 0)
+        if io.input(23) != 1:
+            eyeHistory.insert(0, True)
+            eyeHistory.pop()
+            io.output(LEDgreen, 1)
+        else:
+            eyeHistory.insert(0, False)
+            eyeHistory.pop()
+    q.put(eyeHistory)
