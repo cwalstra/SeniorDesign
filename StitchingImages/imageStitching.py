@@ -16,15 +16,14 @@ TODO: Choose left/right
 '''
 
 def main():
-#    leftStream = VideoStream(usePiCamera=True).start()
-#    time.sleep(2.0)
+    rightStream = VideoStream(usePiCamera=True).start()
+    time.sleep(2.0)
 
     stitcher = Stitcher()
 
     while True:
-#        left = leftStream.read()
-        left = cv2.imread("leftStitchTest.JPG")
-        right = cv2.imread('rightStitchTest.JPG')
+        right = leftStream.read()
+        left = cv2.imread("leftSide.jpeg")
 
         left = imutils.resize(left, width=400)
         right = imutils.resize(right, width=400)
@@ -45,7 +44,7 @@ def main():
 
     print("Stopping")
     cv2.destroyAllWindows()
-    #leftStream.stop()
+    rightStream.stop()
 
 
 
