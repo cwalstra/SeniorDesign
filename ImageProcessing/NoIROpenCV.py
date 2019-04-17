@@ -13,6 +13,7 @@ from timeit import default_timer as Timer
 import netifaces as ni
 import socket
 import traceback
+from os import system
 
 def lookForPeople(frame):
     image = frame.array
@@ -66,6 +67,8 @@ rawCapture = PiRGBArray(camera, size=(640, 480))
 try:
     for newFrame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         start = Timer()
+        imwrite("leftSide.jpeg", frame)
+        system("scp leftSide.jpeg pi@153.106.113.238:SeniorDesign/StitchingImages")
         if not lookForPeople(newFrame):
             break
 
