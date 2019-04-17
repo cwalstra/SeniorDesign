@@ -104,13 +104,13 @@ def main():
                 if True in thermHistory and True in eyeHistory or \
                    True in thermHistory and True in levelHistory or \
                    True in eyeHistory and True in levelHistory:
-                       # do something positive
+                       GPIO.output(26, True)
                        print("Saving needed")
             elif True in thermHistory and True in eyeHistory and True in levelHistory and running:
-                # do positive thing
+                GPIO.output(26, True)
                 print("Saving needed")
             else:
-                # do negative thing
+                GPIO.output(26, False)
                 print("    No saving needed")
 
             if debug and False:
