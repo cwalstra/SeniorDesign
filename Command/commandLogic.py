@@ -112,6 +112,10 @@ def main():
                            print("Saving needed")
                            time.sleep(10)
                            GPIO.output(26, False)
+                           for i in range(len(peopleHistory)):
+                               peopleHistory[i] = 0
+                           for i in range(len(thermHistory)):
+                               thermHistory[i] = 0
                        else:
                            print("Not running")
                 else:
@@ -122,6 +126,10 @@ def main():
                     print("Saving needed")
                     time.sleep(10)
                     GPIO.output(26, False)
+                    for i in range(len(peopleHistory)):
+                        peopleHistory[i] = 0
+                    for i in range(len(thermHistory)):
+                        thermHistory[i] = 0
                 else:
                     print("Not running")
             else:
