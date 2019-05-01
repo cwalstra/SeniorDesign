@@ -20,6 +20,7 @@ while True:
     print("\n")
     print("Splitter")
     highTemps = 0
+    arraySum = 0
     rowCounter = 0
     highTempList = []
     maxTemp = 0
@@ -28,10 +29,11 @@ while True:
         # Pad to 1 decimal place
         rowCounter += 1
         columnCounter = 0
-        print(['{0:.1f}'.format(temp) for temp in row])
+        #print(['{0:.1f}'.format(temp) for temp in row])
         for temp in row:
+            arraySum += temp
             columnCounter += 1
-            if temp > 25.7:
+            if temp > 26.0:
                 highTemps += 1
                 highTempList.append((rowCounter, columnCounter))
             if temp > maxTemp:
@@ -39,16 +41,18 @@ while True:
             if temp < minTemp:
                 minTemp = temp
 
-    if highTemps >= 1:
+    average = arraySum / 64
+
+    if maxTemp - average >= 1.8:
         GPIO.output(LED, True)
-        detectRange.append(maxTemp - minTemp)
+        detectRange.append(maxTemp - average)
     else:
         GPIO.output(LED, False)
-        noDetectRange.append(maxTemp - minTemp)
+        noDetectRange.append(maxTemp - average)
 
     print(highTempList)
-    #print(noDetectRange)
-    #print(detectRange)
+    print(noDetectRange)
+    print(detectRange)
 
 '''
 Potential algorithms

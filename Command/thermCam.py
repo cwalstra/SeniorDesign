@@ -30,7 +30,7 @@ def thermCamReading(amg):
                 highTemps += 1
                 highTempList.append((rowCounter, columnCounter))
 
-    if highTemps > 4:
+    if highTemps > 0:
         io.output(LEDred, 1)
         return True
     else:

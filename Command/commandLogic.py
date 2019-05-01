@@ -22,22 +22,25 @@ import RPi.GPIO as GPIO
 
 running = True 
 
-def button_callback():
+def button_callback(value):
     global running
     running = not running
 
 def button_setup():
-    BUTTON = 16
+    BUTTON = 18
     BOUNCE_TIME = 300
-    GPIO.setup(BUTTON, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-    GPIO.add_event_detect(SWITCH_1, GPIO.RISING, callback = my_callback, bouncetime = BOUNCE_TIME)
-       
+    GPIO.setup(BUTTON, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.add_event_detect(BUTTON, GPIO.RISING, callback = button_callback, bouncetime = BOUNCE_TIME)
+
 
 def main():
     global running
     button_setup()
     q = Queue()
     q2 = Queue()
+
+    GPIO.setup(26, GPIO.OUT)
+    GPIO.output(26, False)
 
     debug = True
     if debug:
@@ -52,7 +55,7 @@ def main():
 
     print("Socket setup...")
     (conn, addr) = socketSetup()
-    peopleHistory = [0, 0, 0, 0, 0, 0, 0, 0]
+    peopleHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     thermHistory = [0, 0, 0, 0]
     eyeHistory = [0, 0, 0, 0]
     levelHistory = [0, 0, 0, 0]
@@ -60,7 +63,7 @@ def main():
     waterLevel = Process(target=levelOutput, args=(read, stdev, q,))
     waterLevel.start()
 
-    eye = Process(target=eyeOutput, args=(q2))
+    eye = Process(target=eyeOutput, args=(q2, ))
     eye.start()
 
     if debug:
@@ -71,7 +74,7 @@ def main():
             start = Timer()
             data = conn.recv(1024).decode()
             readEnd = Timer()
-            print("Running: " + running)
+            print("Running: " + str(running))
             if not data:
                 print("Not Data")
                 break
@@ -100,15 +103,27 @@ def main():
             if debug:
                 print(levelHistory)
 
-            if 1 in peopleHistory or 2 in peopleHistory and running:
+            if 1 in peopleHistory or 2 in peopleHistory:
                 if True in thermHistory and True in eyeHistory or \
                    True in thermHistory and True in levelHistory or \
                    True in eyeHistory and True in levelHistory:
-                       GPIO.output(26, True)
-                       print("Saving needed")
-            elif True in thermHistory and True in eyeHistory and True in levelHistory and running:
-                GPIO.output(26, True)
-                print("Saving needed")
+                       if running:
+                           GPIO.output(26, True)
+                           print("Saving needed")
+                           time.sleep(10)
+                           GPIO.output(26, False)
+                       else:
+                           print("Not running")
+                else:
+                    print("    No saving needed")
+            elif True in thermHistory and True in eyeHistory and True in levelHistory:
+                if running:
+                    GPIO.output(26, True)
+                    print("Saving needed")
+                    time.sleep(10)
+                    GPIO.output(26, False)
+                else:
+                    print("Not running")
             else:
                 GPIO.output(26, False)
                 print("    No saving needed")

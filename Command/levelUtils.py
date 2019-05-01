@@ -5,14 +5,13 @@ import time
 import statistics
 import RPi.GPIO as io
 from timeit import default_timer as Timer
+import queue
 
 LEDblue = 20
 
 def setup():
    io.setwarnings(False)
    io.setmode(io.BCM)
-   io.setup(21, io.OUT)
-   io.output(21, 0)
    io.setup(LEDblue, io.OUT)
    io.output(LEDblue, 0)
 
@@ -42,7 +41,7 @@ def analog_read():
     return charge_time()
 
 def levelSetup():
-    changeFactor = 30
+    changeFactor = 17
     setup()
     charge()
     init_range = 100
@@ -63,6 +62,8 @@ def levelSetup():
                 good_init_vals.append(init_vals[i])
     initial = statistics.mean(good_init_vals)
 
+    print("Initial mean: " + str(initial))
+
     stdev_limit = initial / changeFactor
     read_range = 10
     read = []
@@ -72,18 +73,19 @@ def levelSetup():
 
 
 def levelOutput(read, stdev_limit, q):
-    levelHistory = [0, 0, 0, 0]
+    levelHistory = [0, 0, 0, 0, 0, 0, 0, 0]
     while True:
         start = Timer()
         splash = False
-        io.output(LEDblue, 0)
         init_range = 100
         skip_factor = 1.15
         sleep_time = 0.2
         cur_read = analog_read()
         time.sleep(sleep_time)
-        io.output(21, 0)
+        io.output(LEDblue, 0)
         if cur_read != 0.0:
+            #print("Current reading: " + str(cur_read))
+            #print("Mean: " + str(statistics.mean(read)))
             if (cur_read / statistics.mean(read) < skip_factor) and \
                     (statistics.mean(read) / cur_read < skip_factor):
                 read.pop()
@@ -98,6 +100,15 @@ def levelOutput(read, stdev_limit, q):
                     levelHistory.insert(0, False)
                     levelHistory.pop()
 
-        q.put(levelHistory)
+        #print(levelHistory)
+
+        try:
+            thing = q.get(False)
+            q.put(levelHistory, False)
+        except queue.Empty:
+            q.put(levelHistory, False)
+        except queue.Full:
+            thing = q.get()
+            q.put(levelHistory, False)
+
         end = Timer()
-        print("Water calc time: " + str(end - start))

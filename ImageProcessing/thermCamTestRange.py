@@ -13,9 +13,6 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(LED, GPIO.OUT)
 GPIO.output(LED, False)
 
-noDetectRange = []
-detectRange = []
-
 while True:
     print("\n")
     print("Splitter")
@@ -31,7 +28,7 @@ while True:
         print(['{0:.1f}'.format(temp) for temp in row])
         for temp in row:
             columnCounter += 1
-            if temp > 25.7:
+            if temp > 26.0:
                 highTemps += 1
                 highTempList.append((rowCounter, columnCounter))
             if temp > maxTemp:
@@ -39,16 +36,12 @@ while True:
             if temp < minTemp:
                 minTemp = temp
 
-    if highTemps >= 1:
+    if maxTemp - minTemp >= 3.5:
         GPIO.output(LED, True)
-        detectRange.append(maxTemp - minTemp)
     else:
         GPIO.output(LED, False)
-        noDetectRange.append(maxTemp - minTemp)
 
     print(highTempList)
-    #print(noDetectRange)
-    #print(detectRange)
 
 '''
 Potential algorithms

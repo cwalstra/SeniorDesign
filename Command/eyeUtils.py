@@ -6,6 +6,8 @@
 
 import time
 import RPi.GPIO as io
+import queue
+from time import sleep
 
 LEDgreen = 12
 
@@ -17,7 +19,7 @@ def eyeSetup():
     io.output(LEDgreen, 0)
 
 def eyeOutput(q):
-    eyeHistory = [0, 0, 0, 0]
+    eyeHistory = [False, False, False, False, False, False, False, False, False,False, False, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     while True:
         io.output(LEDgreen, 0)
         if io.input(23) != 1:
@@ -27,4 +29,14 @@ def eyeOutput(q):
         else:
             eyeHistory.insert(0, False)
             eyeHistory.pop()
-    q.put(eyeHistory)
+            
+        try:
+            thing = q.get(False)
+            q.put(eyeHistory, False)
+        except queue.Empty:
+            q.put(eyeHistory, False)
+        except queue.Full:
+            thing = q.get(False)
+            q.put(eyeHistory, False)
+
+        sleep(0.1)
