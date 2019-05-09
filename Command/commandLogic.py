@@ -22,10 +22,12 @@ import RPi.GPIO as GPIO
 
 running = True 
 
+# Establish the action that occurs if the button is pressed
 def button_callback(value):
     global running
     running = not running
 
+# Setup the button to allow the system to be turned on/off
 def button_setup():
     BUTTON = 18
     BOUNCE_TIME = 300
@@ -39,9 +41,11 @@ def main():
     q = Queue()
     q2 = Queue()
 
+    # Setup the button GPIO pin
     GPIO.setup(26, GPIO.OUT)
     GPIO.output(26, False)
 
+    # Run setup functions to get all sensors ready
     debug = True
     if debug:
         print("Thermal Camera setup...")
@@ -53,13 +57,18 @@ def main():
         print("Water Level Sensor setup...")
     read, stdev = levelSetup()
 
+    # Setup a socket for communicating with the human search pi
     print("Socket setup...")
     (conn, addr) = socketSetup()
+
+    # Establish arrays for memory
     peopleHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     thermHistory = [0, 0, 0, 0]
     eyeHistory = [0, 0, 0, 0]
     levelHistory = [0, 0, 0, 0]
 
+    # Create separate processes to allow the water level sensor and the
+    # photoelectric eye to run constantly
     waterLevel = Process(target=levelOutput, args=(read, stdev, q,))
     waterLevel.start()
 
@@ -72,9 +81,13 @@ def main():
     try:
         while True:
             start = Timer()
+            # Get number of people from human search Pi
             data = conn.recv(1024).decode()
             readEnd = Timer()
+
             print("Running: " + str(running))
+
+            # Decode the data and acknowledge
             if not data:
                 print("Not Data")
                 break
@@ -83,26 +96,32 @@ def main():
                     print("Data: " + data)
             ack = "ack"
             conn.send(ack.encode())
+
+            # Save the number of people
             numberOfPeople = int(data)
             peopleHistory.insert(0, numberOfPeople)
             peopleHistory.pop()
             if debug:
                 print(peopleHistory)
 
+            # Get output from the thermal camera and save it
             thermCamOutput = thermCamReading(motorGroup)
             thermHistory.insert(0, thermCamOutput)
             thermHistory.pop()
             if debug:
                 print(thermHistory)
 
+            # Get the last set of readings from the photoelectric eye
             eyeHistory = q2.get()
             if debug:
                 print(eyeHistory)
 
+            # Get the last set of readings from the water level sensor
             levelHistory = q.get()
             if debug:
                 print(levelHistory)
 
+            # Process the inputs
             if 1 in peopleHistory or 2 in peopleHistory:
                 if True in thermHistory and True in eyeHistory or \
                    True in thermHistory and True in levelHistory or \
@@ -110,8 +129,12 @@ def main():
                        if running:
                            GPIO.output(26, True)
                            print("Saving needed")
+
+                           # run the compressor for ten seconds
                            time.sleep(10)
                            GPIO.output(26, False)
+
+                           # reset memory
                            for i in range(len(peopleHistory)):
                                peopleHistory[i] = 0
                            for i in range(len(thermHistory)):
@@ -137,6 +160,7 @@ def main():
                 print("    No saving needed")
 
             if debug and False:
+                # Timing stuff
                 end = Timer()
                 readTime = readEnd - start
                 elapsedTime = end - start

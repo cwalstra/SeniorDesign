@@ -11,6 +11,7 @@ from time import sleep
 
 LEDgreen = 12
 
+# Setup up the photoelectric eye
 def eyeSetup():
     io.setwarnings(False)
     io.setmode(io.BCM)
@@ -18,6 +19,7 @@ def eyeSetup():
     io.setup(LEDgreen, io.OUT)
     io.output(LEDgreen, 0)
 
+# run the photoelectric eye
 def eyeOutput(q):
     eyeHistory = [False, False, False, False, False, False, False, False, False,False, False, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     while True:
@@ -30,6 +32,7 @@ def eyeOutput(q):
             eyeHistory.insert(0, False)
             eyeHistory.pop()
             
+        # Replace the list in the queue with the new list
         try:
             thing = q.get(False)
             q.put(eyeHistory, False)

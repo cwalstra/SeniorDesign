@@ -13,6 +13,7 @@ class Stitcher:
     def __init__(self):
         self.cachedH = None
 
+    # This function stitches two images together
     def stitch(self, images, ratio = 0.75, reprojThresh = 4.0, showMatches = False):
         (imageB, imageA) = images
         
@@ -34,6 +35,7 @@ class Stitcher:
 
         return result
 
+    # This function finds the points where it needs to stitch the images
     def detectAndDescribe(self, image):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -45,6 +47,7 @@ class Stitcher:
 
         return (kps, features)
 
+    # this function matches the points found above to actually stitch them
     def matchKeypoints(self, kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh):
         matcher = cv2.DescriptorMatcher_create("BruteForce")
         rawMatches = matcher.knnMatch(featuresA, featuresB, 2)

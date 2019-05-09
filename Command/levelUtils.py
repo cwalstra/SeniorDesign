@@ -9,6 +9,9 @@ import queue
 
 LEDblue = 20
 
+# This file implements a solution for detecting splashes in the pool.  It establishes a baseline for the level of the pool and triggers based on a reading being more than some factor times the standard deviation away from the running mean.
+
+
 def setup():
    io.setwarnings(False)
    io.setmode(io.BCM)

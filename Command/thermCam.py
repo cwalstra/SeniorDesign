@@ -6,6 +6,7 @@ import RPi.GPIO as io
 
 LEDred = 21
 
+# Set up the thermal camera
 def thermCamSetup():
     i2c = busio.I2C(board.SCL, board.SDA)
     amg = adafruit_amg88xx.AMG88XX(i2c)
@@ -15,6 +16,7 @@ def thermCamSetup():
     io.output(LEDred, 0)
     return amg
 
+# Take a reading from the thermal camera
 def thermCamReading(amg):
     highTemps = 0
     rowCounter = 0
